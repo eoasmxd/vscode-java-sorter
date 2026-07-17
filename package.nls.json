@@ -1,0 +1,10 @@
+{
+    "extension.description": "Sorts class members of Java files, following Eclipse's Sort Members rules. Only sorts, no formatting.",
+    "command.title": "Java Sorter: Sort Members (Eclipse Style)",
+    "config.sortFields": "Whether to sort class fields.",
+    "config.sortConstants": "Whether to sort class constants (such as enum constants).",
+    "config.sortInitializers": "Whether to sort static/instance initializers.",
+    "config.sortByVisibility": "Whether to sort group members by visibility descending (Public -> Protected -> Package -> Private).",
+    "config.distinguishStaticMethods": "Whether to distinguish static methods into a separate group (otherwise sorted together with instance methods).",
+    "config.distinguishConstructors": "Whether to distinguish constructors into a separate group (otherwise sorted together with instance methods)."
+}

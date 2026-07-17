@@ -1,0 +1,92 @@
+{
+    "name": "vscode-java-sorter",
+    "displayName": "Java Sorter (Eclipse Style)",
+    "description": "%extension.description%",
+    "icon": "icon.png",
+    "version": "1.0.0",
+    "publisher": "eoasmxd",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/eoasmxd/vscode-java-sorter.git"
+    },
+    "bugs": {
+        "url": "https://github.com/eoasmxd/vscode-java-sorter/issues"
+    },
+    "homepage": "https://github.com/eoasmxd/vscode-java-sorter#readme",
+    "keywords": [
+        "java",
+        "sorter",
+        "sort",
+        "eclipse",
+        "format"
+    ],
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Formatters",
+        "Programming Languages"
+    ],
+    "activationEvents": [
+        "onCommand:vscode-java-sorter.sort-members"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "vscode-java-sorter.sort-members",
+                "title": "%command.title%"
+            }
+        ],
+        "configuration": {
+            "title": "Java Sorter",
+            "properties": {
+                "javaSorter.sortFields": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%config.sortFields%"
+                },
+                "javaSorter.sortConstants": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%config.sortConstants%"
+                },
+                "javaSorter.sortInitializers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%config.sortInitializers%"
+                },
+                "javaSorter.sortByVisibility": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%config.sortByVisibility%"
+                },
+                "javaSorter.distinguishStaticMethods": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%config.distinguishStaticMethods%"
+                },
+                "javaSorter.distinguishConstructors": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%config.distinguishConstructors%"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "clean": "node -e \"try { require('fs').rmSync('out', {recursive:true,force:true}); require('fs').readdirSync('.').filter(f => f.endsWith('.vsix')).forEach(f => require('fs').unlinkSync(f)) } catch(e) {}\"",
+        "package": "npx @vscode/vsce package"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "@types/vscode": "^1.80.0",
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "java-parser": "^2.3.0"
+    }
+}

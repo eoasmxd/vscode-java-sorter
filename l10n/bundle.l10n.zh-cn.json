@@ -1,0 +1,8 @@
+{
+    "Java Sorter: No active editor found.": "Java Sorter: 没有打开的编辑器。",
+    "Java Sorter: The active file is not a Java file.": "Java Sorter: 当前文件不是 Java 文件。",
+    "Java Sorter: Member order is already sorted.": "Java Sorter: 成员顺序未发生变化。",
+    "Java Sorter: Class members sorted successfully.": "Java Sorter: 类成员排序完成。",
+    "Java Sorter: Failed to apply edits.": "Java Sorter: 应用编辑失败。",
+    "Java Sorter: Sorting failed - {0}": "Java Sorter: 排序失败 — {0}"
+}
