@@ -5,6 +5,7 @@ on:
     tags:
       - 'v*'
       - '[0-9]*'
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -16,10 +17,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
 
       - name: Sync Version from Tag
+        if: github.ref_type == 'tag'
         run: |
           VERSION=${GITHUB_REF_NAME#v}
           npm version $VERSION --no-git-tag-version

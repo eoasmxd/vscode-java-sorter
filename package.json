@@ -3,7 +3,7 @@
     "displayName": "Java Sorter (Eclipse Style)",
     "description": "%extension.description%",
     "icon": "icon.png",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "eoasmxd",
     "repository": {
         "type": "git",
