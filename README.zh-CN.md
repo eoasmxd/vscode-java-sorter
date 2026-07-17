@@ -6,15 +6,22 @@ VS Code 扩展：对 Java 文件的类成员进行排序，**只排序，不格�
 
 ## 排序规则
 
+默认情况下，类成员排序时的物理位置大顺序为（严格对齐 Eclipse 默认）：
+
+1. **嵌套类型**（类/接口/枚举）➡️ **默认排最前面**。
+2. **静态字段 / 实例字段**（整体按大组排队，组内保持相对原序）。
+3. **静态初始化块 / 实例初始化块**（整体按大组排队，组内保持相对原序）。
+4. **静态方法 / 构造方法 / 实例方法**（按顺序分组排序）。
+
 | 成员类型 | 默认是否排序 | 排序方式 |
 |----------|:------:|----------|
-| 字段 (fields) | ❌ 默认不排 | 保持原位（可在设置中开启，支持按可见性/字母序） |
-| 枚举常量 (enum constants) | ❌ 默认不排 | 保持原位（可在设置中开启，支持按字母序） |
-| 初始化块 (initializers) | ❌ 默认不排 | 保持原位（可在设置中开启，静态块排在实例块前面） |
-| 构造方法 | ✅ 默认排序 | 按参数数量升序 |
-| 静态方法 | ✅ 默认排序 | 可见性降序 → 字母序 |
-| 实例方法 | ✅ 默认排序 | 可见性降序 → 字母序 |
-| 嵌套类型（类/接口/枚举） | ✅ 默认排序 | 静态优先 → 类→接口→枚举 → 字母序 |
+| 字段 (fields) | ❌ 默认不排 | 整体按大组排队，组内保持相对原序（若开启 `sortAllMembers`，则在组内排序） |
+| 枚举常量 (enum constants) | ❌ 默认不排 | 整体按大组排队，组内保持相对原序（若开启 `sortAllMembers`，则在组内排序） |
+| 初始化块 (initializers) | ❌ 默认不排 | 整体按大组排队，组内保持相对原序（若开启 `sortAllMembers`，静态块排在实例块前面） |
+| 构造方法 (constructors) | ✅ 默认排序 | 按参数数量升序 ➡️ 字母序 |
+| 静态方法 (staticMethods) | ✅ 默认排序 | 默认按字母序（若配置了 `visibilityOrder` 则先按可见性排序） |
+| 实例方法 (methods) | ✅ 默认排序 | 默认按字母序（若配置了 `visibilityOrder` 则先按可见性排序） |
+| 嵌套类型 (types) | ✅ 默认排序 | 静态优先 ➡️ 类 ➡️ 接口 ➡️ 枚举 ➡️ 字母序 |
 
 - 所有成员前的**注解、Javadoc 注释**都会跟随成员一起移动。
 - 嵌套内部类的成员保持原样不参与排序，仅作为整体随外层类排序移动。
@@ -73,12 +80,9 @@ VS Code 扩展：对 Java 文件的类成员进行排序，**只排序，不格�
 
 | 配置项 | 类型 | 默认值 | 描述 |
 |--------|:----:|:------:|------|
-| `javaSorter.sortFields` | `boolean` | `false` | 是否对类字段进行排序。 |
-| `javaSorter.sortConstants` | `boolean` | `false` | 是否对类常量（如枚举常量）进行排序。 |
-| `javaSorter.sortInitializers` | `boolean` | `false` | 是否对静态/实例初始化块进行排序。 |
-| `javaSorter.sortByVisibility` | `boolean` | `false` | 是否在组内按照可见性降序排序（Public -> Protected -> Package -> Private）。 |
-| `javaSorter.distinguishStaticMethods` | `boolean` | `true` | 是否将静态方法分出单独的一组进行排序（若不分，则静态与实例方法混在一起排序）。 |
-| `javaSorter.distinguishConstructors` | `boolean` | `true` | 是否将构造方法分出单独的一组进行排序（若不分，则构造与实例方法混在一起排序）。 |
+| `javaSorter.memberOrder` | `string[]` | `["types", "staticFields", "staticInitializers", "staticMethods", "fields", "initializers", "constructors", "methods"]` | 指定不同类别成员的物理排列顺序大链条（首位为优先级最高）。 |
+| `javaSorter.visibilityOrder` | `string[]` | `[]` | 指定组内可见性的排序顺序（如 `["public", "protected", "package", "private"]`）。保留空数组则关闭可见性排序，纯按字母序排。 |
+| `javaSorter.sortAllMembers` | `boolean` | `false` | 是否对所有类成员进行排序。若为 `false`（默认），则字段、枚举常量和初始化块将钉在原地不动，只重排方法、构造器和内部类。 |
 
 ## 技术细节
 
