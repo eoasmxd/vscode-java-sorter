@@ -33,11 +33,13 @@ jobs:
           npx @vscode/vsce package
 
       - name: Publish to VS Code Marketplace
+        continue-on-error: true
         run: npx @vscode/vsce publish --packagePath *.vsix
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
       - name: Publish to Open VSX
+        continue-on-error: true
         run: npx ovsx publish *.vsix
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
