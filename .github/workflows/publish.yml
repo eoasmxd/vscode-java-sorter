@@ -20,12 +20,6 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Sync Version from Tag
-        if: github.ref_type == 'tag'
-        run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          npm version $VERSION --no-git-tag-version
-
       - name: Install, Compile & Package
         run: |
           npm install
