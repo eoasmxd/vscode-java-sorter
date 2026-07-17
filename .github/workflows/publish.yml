@@ -24,12 +24,18 @@ jobs:
           VERSION=${GITHUB_REF_NAME#v}
           npm version $VERSION --no-git-tag-version
 
-      - name: Install & Compile
+      - name: Install, Compile & Package
         run: |
           npm install
           npm run compile
+          npx @vscode/vsce package
 
       - name: Publish to VS Code Marketplace
-        run: npx @vscode/vsce publish
+        run: npx @vscode/vsce publish --packagePath *.vsix
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to Open VSX
+        run: npx ovsx publish *.vsix
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
