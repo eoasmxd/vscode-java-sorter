@@ -27,12 +27,9 @@ export function activate(context: vscode.ExtensionContext): void {
                 const originalSource = document.getText();
                 const workspaceConfig = vscode.workspace.getConfiguration("javaSorter");
                 const sortConfig = {
-                    sortFields: workspaceConfig.get<boolean>("sortFields", false),
-                    sortConstants: workspaceConfig.get<boolean>("sortConstants", false),
-                    sortInitializers: workspaceConfig.get<boolean>("sortInitializers", false),
-                    sortByVisibility: workspaceConfig.get<boolean>("sortByVisibility", false),
-                    distinguishStaticMethods: workspaceConfig.get<boolean>("distinguishStaticMethods", true),
-                    distinguishConstructors: workspaceConfig.get<boolean>("distinguishConstructors", true),
+                    memberOrder: workspaceConfig.get<string[]>("memberOrder", DEFAULT_SORT_CONFIG.memberOrder),
+                    visibilityOrder: workspaceConfig.get<string[]>("visibilityOrder", DEFAULT_SORT_CONFIG.visibilityOrder),
+                    sortAllMembers: workspaceConfig.get<boolean>("sortAllMembers", DEFAULT_SORT_CONFIG.sortAllMembers),
                 };
                 const sortedCode = sortSourceCode(originalSource, sortConfig);
 

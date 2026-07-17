@@ -6,15 +6,22 @@ VS Code Extension: Sorts class members of Java files **without formatting** them
 
 ## Sorting Rules
 
+By default, the global physical ordering of class members is (strictly matching Eclipse defaults):
+
+1. **Nested Types** (classes/interfaces/enums) ➡️ **Sorted at the very top**.
+2. **Static Fields / Instance Fields** (macro-grouped together, keeping relative original order inside).
+3. **Static Initializers / Instance Initializers** (macro-grouped together, keeping relative original order inside).
+4. **Static Methods / Constructors / Instance Methods** (grouped and sorted).
+
 | Member Type | Sorted by Default | Sorting Method |
 |-------------|:-----------------:|----------------|
-| Fields      | ❌ No             | Keep in place (can be enabled in settings; supports visibility/alphabetical order) |
-| Constants   | ❌ No             | Keep in place (can be enabled in settings; supports alphabetical order) |
-| Initializers| ❌ No             | Keep in place (can be enabled in settings; static blocks sorted before instance blocks) |
-| Constructors| ✅ Yes            | Ascending parameter count |
-| Static Methods| ✅ Yes          | Descending visibility -> Alphabetical |
-| Instance Methods| ✅ Yes        | Descending visibility -> Alphabetical |
-| Nested Types| ✅ Yes            | Static first -> Class -> Interface -> Enum -> Alphabetical |
+| Fields (fields) | ❌ No          | Macro-grouped together, keeping relative original order inside (sorted inside if `sortAllMembers` is true) |
+| Constants (enum constants) | ❌ No | Macro-grouped together, keeping relative original order inside (sorted inside if `sortAllMembers` is true) |
+| Initializers (initializers) | ❌ No | Macro-grouped together, keeping relative original order inside (static blocks sorted before instance blocks if `sortAllMembers` is true) |
+| Constructors (constructors) | ✅ Yes | Ascending parameter count ➡️ Alphabetical |
+| Static Methods (staticMethods) | ✅ Yes | Alphabetical by default (sorted by visibility if `visibilityOrder` is configured) |
+| Instance Methods (methods) | ✅ Yes | Alphabetical by default (sorted by visibility if `visibilityOrder` is configured) |
+| Nested Types (types) | ✅ Yes | Static first ➡️ Class ➡️ Interface ➡️ Enum ➡️ Alphabetical |
 
 - Annotations and Javadoc comments preceding a member will move with it.
 - Nested class members remain untouched and move as a whole with the outer class.
@@ -72,12 +79,9 @@ Open VS Code Settings (`Ctrl+,`) and search for `javaSorter` to customize:
 
 | Setting | Type | Default | Description |
 |---------|:----:|:-------:|-------------|
-| `javaSorter.sortFields` | `boolean` | `false` | Whether to sort class fields. |
-| `javaSorter.sortConstants` | `boolean` | `false` | Whether to sort class constants (such as enum constants). |
-| `javaSorter.sortInitializers` | `boolean` | `false` | Whether to sort static/instance initializers. |
-| `javaSorter.sortByVisibility` | `boolean` | `false` | Whether to sort group members by visibility descending (Public -> Protected -> Package -> Private). |
-| `javaSorter.distinguishStaticMethods` | `boolean` | `true` | Whether to distinguish static methods into a separate group. |
-| `javaSorter.distinguishConstructors` | `boolean` | `true` | Whether to distinguish constructors into a separate group. |
+| `javaSorter.memberOrder` | `string[]` | `["types", "staticFields", "staticInitializers", "staticMethods", "fields", "initializers", "constructors", "methods"]` | Specifies the physical sorting order of different member categories (highest priority at index 0). |
+| `javaSorter.visibilityOrder` | `string[]` | `[]` | Specifies the sorting order of member visibilities within each group (e.g., `["public", "protected", "package", "private"]`). Leave empty to skip visibility sorting and use pure alphabetical order. |
+| `javaSorter.sortAllMembers` | `boolean` | `false` | Whether to sort all class members. If `false` (default), fields, enum constants, and initializers remain in their original positions. |
 
 ## Technical Details
 

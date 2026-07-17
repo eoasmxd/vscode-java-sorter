@@ -1,10 +1,7 @@
 {
     "extension.description": "对 Java 文件的类成员进行排序，仿 Eclipse Sort Members 规则。只排序，不格式化。",
     "command.title": "Java Sorter: 排序类成员 (仿 Eclipse 风格)",
-    "config.sortFields": "是否对类字段进行排序。",
-    "config.sortConstants": "是否对类常量（如枚举常量）进行排序。",
-    "config.sortInitializers": "是否对静态/实例初始化块进行排序。",
-    "config.sortByVisibility": "是否在组内按照可见性降序排序（Public -> Protected -> Package -> Private）。",
-    "config.distinguishStaticMethods": "是否将静态方法分出单独的一组进行排序（若不分，则静态与实例方法混在一起排序）。",
-    "config.distinguishConstructors": "是否将构造方法分出单独的一组进行排序（若不分，则构造与实例方法混在一起排序）。"
+    "config.memberOrder": "指定不同类别成员的物理排列顺序。如果 sortAllMembers 为 false，未包含在数组中的类型将保持原位不动。",
+    "config.visibilityOrder": "指定同组内各成员可见性的排序优先级顺序（如 ['public', 'protected', 'package', 'private']）。保留空数组则不启用可见性排序。",
+    "config.sortAllMembers": "是否对所有类成员进行排序。若为 false，则字段、枚举常量和初始化块将像钉子一样固定在原位不动。"
 }

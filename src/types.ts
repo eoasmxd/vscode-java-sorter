@@ -77,33 +77,27 @@ export interface IJavaParser {
     parse(source: string): ClassInfo[];
 }
 
-/**
- * 排序配置选项
- */
 export interface SortConfiguration {
-    /** 是否对字段进行排序，默认不排 (false) */
-    sortFields: boolean;
-    /** 是否对常量（如枚举常量）进行排序，默认不排 (false) */
-    sortConstants: boolean;
-    /** 是否对初始化块进行排序，默认不排 (false) */
-    sortInitializers: boolean;
-    /** 是否按可见性排序，默认不按 (false) */
-    sortByVisibility: boolean;
-    /** 是否区分静态方法（若为 true，静态方法排在实例方法前面），默认区分 (true) */
-    distinguishStaticMethods: boolean;
-    /** 是否区分构造方法（若为 true，构造方法排在最前，但优先级低于静态方法），默认区分 (true) */
-    distinguishConstructors: boolean;
+    /** 成员类别的物理排序顺序链 */
+    memberOrder: string[];
+    /** 同组内成员的可见性排序顺序链（空代表不启用可见性排序） */
+    visibilityOrder: string[];
+    /** 是否对所有类成员进行排序（若为 false，则字段、枚举常量和初始化器保持原位） */
+    sortAllMembers: boolean;
 }
 
-/**
- * 默认排序配置，便于后续直接读取 VS Code 的 workspace settings
- */
 export const DEFAULT_SORT_CONFIG: SortConfiguration = {
-    sortFields: false,
-    sortConstants: false,
-    sortInitializers: false,
-    sortByVisibility: false,
-    distinguishStaticMethods: true,
-    distinguishConstructors: true,
+    memberOrder: [
+        "types",
+        "staticFields",
+        "staticInitializers",
+        "staticMethods",
+        "fields",
+        "initializers",
+        "constructors",
+        "methods",
+    ],
+    visibilityOrder: [],
+    sortAllMembers: false,
 };
 
