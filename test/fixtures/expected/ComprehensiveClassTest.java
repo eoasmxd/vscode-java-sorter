@@ -2,7 +2,7 @@ package test;
 
 public class ComprehensiveClassTest {
 
-    // 8. 嵌套 Enum
+    // 1. 嵌套 Enum
     public enum MyEnum {
         RED, GREEN, BLUE
     }
@@ -10,33 +10,33 @@ public class ComprehensiveClassTest {
     // 2. 嵌套 Record
     public record NestedRecord(String name, int age) {}
 
-    // 6. 嵌套注解
+    // 3. 嵌套注解
     public @interface NestedAnnotation {
         String value() default "";
     }
 
-    // 1. 静态初始化块 A
+    // 4. 静态初始化块 A
     static {
         System.out.println("Static Initializer A");
     }
 
-    // 7. 静态初始化块 B
+    // 5. 静态初始化块 B
     static {
         System.out.println("Static Initializer B");
     }
 
-    // 3. 私有字段
+    // 6. 私有字段
     private int privateField;
 
-    // 4. 公有字段
+    // 7. 公有字段
     public String publicField;
 
-    // 5. 实例初始化块 A
+    // 8. 实例初始化块 A
     {
         System.out.println("Instance Initializer A");
     }
 
-    // 11. 实例初始化块 B
+    // 9. 实例初始化块 B
     {
         System.out.println("Instance Initializer B");
     }
@@ -46,7 +46,7 @@ public class ComprehensiveClassTest {
         this.privateField = x;
     }
 
-    // 9. 构造方法 B (双参数)
+    // 11. 构造方法 B (双参数)
     public ComprehensiveClassTest(int x, int y) {
         this.privateField = x + y;
     }

@@ -21,7 +21,7 @@ function runAllTests() {
     };
     try {
         originalText = fs.readFileSync(path.join(fixturesDir, "original/ComprehensiveClassTest.java"), "utf-8");
-        const expectedText = fs.readFileSync(path.join(fixturesDir, "expected/ComprehensiveClassTest.expected.java"), "utf-8");
+        const expectedText = fs.readFileSync(path.join(fixturesDir, "expected/ComprehensiveClassTest.java"), "utf-8");
 
         const result = sortSourceCode(originalText, config);
         assert.strictEqual(result.replace(/\r\n/g, "\n"), expectedText.replace(/\r\n/g, "\n"));
@@ -36,7 +36,7 @@ function runAllTests() {
     // 用例 2: ComprehensiveInterfaceTest 可见性推导排序验证
     try {
         const originalText = fs.readFileSync(path.join(fixturesDir, "original/ComprehensiveInterfaceTest.java"), "utf-8");
-        const expectedText = fs.readFileSync(path.join(fixturesDir, "expected/ComprehensiveInterfaceTest.expected.java"), "utf-8");
+        const expectedText = fs.readFileSync(path.join(fixturesDir, "expected/ComprehensiveInterfaceTest.java"), "utf-8");
 
         const config: SortConfiguration = {
             memberOrder: ["types", "staticFields", "staticInitializers", "staticMethods", "fields", "initializers", "constructors", "methods"],
