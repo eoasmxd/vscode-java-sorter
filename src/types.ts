@@ -44,8 +44,8 @@ export interface MemberInfo {
     isStatic: boolean;
     /** 方法参数数量（仅对构造方法和方法有意义） */
     paramCount: number;
-    /** 嵌套类型的种类（class / interface / enum），仅对 NESTED_TYPE 有意义 */
-    nestedKind?: "class" | "interface" | "enum";
+    /** 嵌套类型的种类（class / interface / enum / record / annotation），仅对 NESTED_TYPE 有意义 */
+    nestedKind?: "class" | "interface" | "enum" | "record" | "annotation";
     /** 是否为抽象成员 */
     isAbstract: boolean;
     /** 成员前的完整文本（含注解、Javadoc），用于最终拼接 */
