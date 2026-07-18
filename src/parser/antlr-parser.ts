@@ -44,7 +44,8 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
     private collectClassMembers(
         classBodyNode: CstNode,
         className: string,
-        minOffset: number
+        minOffset: number,
+        contextType: "class" | "interface" | "enum"
     ): MemberInfo[] {
         const members: MemberInfo[] = [];
         const bodyChildren = classBodyNode.children || classBodyNode;
@@ -65,14 +66,15 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
                 }
             }
 
-            let startOffset = extractStartOffset(d);
+            const rawStartOffset = extractStartOffset(d);
+            let startOffset = rawStartOffset;
             const endOffset = extractEndOffset(d);
 
             startOffset = extendStartOffsetToIncludeComments(this.source, startOffset, minOffset);
 
             if (children.fieldDeclaration) {
                 for (const fd of toArray(children.fieldDeclaration)) {
-                    const info = makeFieldInfo(fd as CstNode, this.source, startOffset, endOffset);
+                    const info = makeFieldInfo(fd as CstNode, this.source, startOffset, endOffset, contextType);
                     if (info) {
                         members.push(info);
                     }
@@ -82,9 +84,26 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
 
             if (children.methodDeclaration) {
                 for (const md of toArray(children.methodDeclaration)) {
-                    const info = makeMethodInfo(md as CstNode, this.source, startOffset, endOffset, false);
-                    if (info) {
-                        members.push(info);
+                    const mdNode = md as CstNode;
+                    if (isParsedAsMethodButActuallyRecord(this.source, startOffset, endOffset)) {
+                        const recordName = extractMethodName(mdNode);
+                        members.push({
+                            type: MemberType.NESTED_TYPE,
+                            start: startOffset,
+                            end: endOffset,
+                            name: recordName || "<anonymous>",
+                            visibility: extractVisibility(toArray(mdNode.children?.modifier || []), contextType),
+                            isStatic: extractStatic(toArray(mdNode.children?.modifier || [])),
+                            paramCount: 0,
+                            nestedKind: "record",
+                            isAbstract: false,
+                            fullText: this.source.slice(startOffset, endOffset),
+                        });
+                    } else {
+                        const info = makeMethodInfo(mdNode, this.source, startOffset, endOffset, false, contextType);
+                        if (info) {
+                            members.push(info);
+                        }
                     }
                 }
                 continue;
@@ -93,7 +112,7 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
             const cdecl = children.constructorDeclaration || originalChildren.constructorDeclaration;
             if (cdecl) {
                 for (const cd of toArray(cdecl)) {
-                    const info = makeConstructorInfo(cd as CstNode, this.source, startOffset, endOffset);
+                    const info = makeConstructorInfo(cd as CstNode, this.source, startOffset, endOffset, contextType);
                     if (info) {
                         members.push(info);
                     }
@@ -102,8 +121,8 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
             }
 
             if (children.classDeclaration) {
-                for (const nd of toArray(children.classDeclaration)) {
-                    const info = makeNestedTypeInfo(nd as CstNode, this.source, startOffset, endOffset, "class", className);
+                for (const cd of toArray(children.classDeclaration)) {
+                    const info = makeNestedTypeInfo(cd as CstNode, this.source, startOffset, endOffset, "class", className, contextType);
                     if (info) {
                         members.push(info);
                     }
@@ -112,8 +131,8 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
             }
 
             if (children.interfaceDeclaration) {
-                for (const nd of toArray(children.interfaceDeclaration)) {
-                    const info = makeNestedTypeInfo(nd as CstNode, this.source, startOffset, endOffset, "interface", className);
+                for (const id of toArray(children.interfaceDeclaration)) {
+                    const info = makeNestedTypeInfo(id as CstNode, this.source, startOffset, endOffset, "interface", className, contextType);
                     if (info) {
                         members.push(info);
                     }
@@ -123,7 +142,27 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
 
             if (children.enumDeclaration) {
                 for (const nd of toArray(children.enumDeclaration)) {
-                    const info = makeNestedTypeInfo(nd as CstNode, this.source, startOffset, endOffset, "enum", className);
+                    const info = makeNestedTypeInfo(nd as CstNode, this.source, startOffset, endOffset, "enum", className, contextType);
+                    if (info) {
+                        members.push(info);
+                    }
+                }
+                continue;
+            }
+
+            if (children.recordDeclaration) {
+                for (const nd of toArray(children.recordDeclaration)) {
+                    const info = makeNestedTypeInfo(nd as CstNode, this.source, startOffset, endOffset, "record", className, contextType);
+                    if (info) {
+                        members.push(info);
+                    }
+                }
+                continue;
+            }
+
+            if (children.annotationTypeDeclaration) {
+                for (const nd of toArray(children.annotationTypeDeclaration)) {
+                    const info = makeNestedTypeInfo(nd as CstNode, this.source, startOffset, endOffset, "annotation", className, contextType);
                     if (info) {
                         members.push(info);
                     }
@@ -149,7 +188,9 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
             }
 
             const blockInit = children.block || originalChildren.block;
-            if (blockInit) {
+            const rawDeclText = this.source.slice(rawStartOffset, endOffset).trim();
+            const isInstanceBlock = blockInit || (rawDeclText.startsWith("{") && rawDeclText.endsWith("}"));
+            if (isInstanceBlock) {
                 members.push({
                     type: MemberType.INITIALIZER,
                     start: startOffset,
@@ -252,7 +293,7 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
             enumConstants = extractEnumConstants(bodyNode, this.source);
         }
 
-        const ordinaryMembers = this.collectClassMembers(bodyNode, typeName, bodyStartOff);
+        const ordinaryMembers = this.collectClassMembers(bodyNode, typeName, bodyStartOff, isEnum ? "enum" : "class");
         const allMembers = [...enumConstants, ...ordinaryMembers];
 
         this.classes.push({
@@ -294,7 +335,7 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
             : fullBodyEnd;
 
         const typeName = extractTypeName(node, false);
-        const members = this.collectClassMembers(bodyNode, typeName, bodyStartOff);
+        const members = this.collectClassMembers(bodyNode, typeName, bodyStartOff, "interface");
 
         this.classes.push({
             name: typeName,
@@ -349,9 +390,12 @@ function extractEndOffset(node: CstNode): number {
 /**
  * 提取修饰符数组中的可见性类型
  */
-function extractVisibility(modifiers: unknown[]): Visibility {
+function extractVisibility(
+    modifiers: unknown[],
+    contextType: "class" | "interface" | "enum"
+): Visibility {
     if (!modifiers || !Array.isArray(modifiers)) {
-        return Visibility.PACKAGE;
+        return contextType === "interface" ? Visibility.PUBLIC : Visibility.PACKAGE;
     }
     for (const modifier of modifiers) {
         const m = modifier as CstNode;
@@ -366,7 +410,7 @@ function extractVisibility(modifiers: unknown[]): Visibility {
             return Visibility.PRIVATE;
         }
     }
-    return Visibility.PACKAGE;
+    return contextType === "interface" ? Visibility.PUBLIC : Visibility.PACKAGE;
 }
 
 /**
@@ -529,7 +573,7 @@ function extractConstructorName(node: CstNode): string {
 /**
  * 从方法/构造函数节点中下潜计算形参数量
  */
-function extractParamCount(node: CstNode): number {
+function extractParamCount(node: CstNode, source: string): number {
     const children = node.children || node;
     let declarator: CstNode | undefined;
 
@@ -546,29 +590,46 @@ function extractParamCount(node: CstNode): number {
     }
 
     if (declarator) {
-        const declChildren = declarator.children || declarator;
-        if (declChildren.formalParameters) {
-            const formalParams = toArray(declChildren.formalParameters)[0] as CstNode;
-            if (formalParams) {
-                const fpChildren = formalParams.children || formalParams;
-                if (fpChildren.formalParameterList) {
-                    const paramList = toArray(fpChildren.formalParameterList)[0] as CstNode;
-                    if (paramList) {
-                        const paramListChildren = paramList.children || paramList;
-                        let count = 0;
-                        if (paramListChildren.formalParameter) {
-                            count += toArray(paramListChildren.formalParameter).length;
-                        }
-                        if (paramListChildren.variableArityParameter) {
-                            count += toArray(paramListChildren.variableArityParameter).length;
-                        }
-                        return count;
-                    }
-                }
+        const start = extractStartOffset(declarator);
+        const end = extractEndOffset(declarator);
+        const text = source.slice(start, end);
+        
+        const parenStart = text.indexOf("(");
+        const parenEnd = text.lastIndexOf(")");
+        if (parenStart !== -1 && parenEnd !== -1 && parenEnd > parenStart) {
+            const paramsText = text.slice(parenStart + 1, parenEnd).trim();
+            if (paramsText === "") {
+                return 0;
             }
+            return countOuterCommas(paramsText) + 1;
         }
     }
     return 0;
+}
+
+/**
+ * 统计圆括号与尖括号外层的逗号数量
+ */
+function countOuterCommas(paramsText: string): number {
+    let commas = 0;
+    let angleDepth = 0;
+    let parenDepth = 0;
+    
+    for (let i = 0; i < paramsText.length; i++) {
+        const char = paramsText[i];
+        if (char === "<") {
+            angleDepth++;
+        } else if (char === ">") {
+            angleDepth--;
+        } else if (char === "(") {
+            parenDepth++;
+        } else if (char === ")") {
+            parenDepth--;
+        } else if (char === "," && angleDepth === 0 && parenDepth === 0) {
+            commas++;
+        }
+    }
+    return commas;
 }
 
 /**
@@ -578,11 +639,12 @@ function makeFieldInfo(
     node: CstNode,
     source: string,
     declStart: number,
-    declEnd: number
+    declEnd: number,
+    contextType: "class" | "interface" | "enum"
 ): MemberInfo | null {
     const children = node.children || node;
     const modifiers = toArray(children.modifier || []);
-    const visibility = extractVisibility(modifiers);
+    const visibility = extractVisibility(modifiers, contextType);
     const isStatic = extractStatic(modifiers);
 
     const varDeclList = children.variableDeclaratorList;
@@ -632,15 +694,16 @@ function makeMethodInfo(
     source: string,
     declStart: number,
     declEnd: number,
-    isConstructor: boolean
+    isConstructor: boolean,
+    contextType: "class" | "interface" | "enum"
 ): MemberInfo | null {
     const children = node.children || node;
     const modifiers = toArray(children.modifier || []);
-    const visibility = extractVisibility(modifiers);
+    const visibility = extractVisibility(modifiers, contextType);
     const isStatic = extractStatic(modifiers);
     const isAbstract = extractAbstract(modifiers);
     const name = isConstructor ? extractConstructorName(node) : extractMethodName(node);
-    const paramCount = extractParamCount(node);
+    const paramCount = extractParamCount(node, source);
 
     return {
         type: isConstructor ? MemberType.CONSTRUCTOR : MemberType.METHOD,
@@ -663,12 +726,13 @@ function makeConstructorInfo(
     node: CstNode,
     source: string,
     declStart: number,
-    declEnd: number
+    declEnd: number,
+    contextType: "class" | "interface" | "enum"
 ): MemberInfo | null {
     const children = node.children || node;
     const modifiers = toArray(children.modifier || []);
-    const visibility = extractVisibility(modifiers);
-    const paramCount = extractParamCount(node);
+    const visibility = extractVisibility(modifiers, contextType);
+    const paramCount = extractParamCount(node, source);
     const ctorName = extractConstructorName(node);
 
     return {
@@ -693,26 +757,29 @@ function makeNestedTypeInfo(
     source: string,
     declStart: number,
     declEnd: number,
-    kind: "class" | "interface" | "enum",
-    parentName: string
+    kind: "class" | "interface" | "enum" | "record" | "annotation",
+    parentName: string,
+    contextType: "class" | "interface" | "enum"
 ): MemberInfo | null {
     const children = node.children || node;
     const modifiers = toArray(children.modifier || []);
-    const visibility = extractVisibility(modifiers);
+    const visibility = extractVisibility(modifiers, contextType);
     const isStatic = extractStatic(modifiers);
-    const typeName = extractTypeName(node, kind === "enum");
+    
+    const text = source.slice(declStart, declEnd);
+    const details = extractNestedTypeDetails(text);
 
     return {
         type: MemberType.NESTED_TYPE,
         start: declStart,
         end: declEnd,
-        name: typeName,
+        name: details.name,
         visibility,
         isStatic,
         paramCount: 0,
-        nestedKind: kind,
+        nestedKind: details.kind,
         isAbstract: false,
-        fullText: source.slice(declStart, declEnd),
+        fullText: text,
     };
 }
 
@@ -816,4 +883,39 @@ function extendStartOffsetToIncludeComments(
         break;
     }
     return current;
+}
+
+/**
+ * 判断文本段是否是 Record 声明
+ */
+function isParsedAsMethodButActuallyRecord(source: string, declStart: number, declEnd: number): boolean {
+    const text = source.slice(declStart, declEnd);
+    return /\brecord\s+[A-Za-z_][A-Za-z0-9_]*\s*\(/.test(text);
+}
+
+/**
+ * 从嵌套声明文本中提取类型种类与名称
+ */
+function extractNestedTypeDetails(text: string): { kind: "class" | "interface" | "enum" | "record" | "annotation"; name: string } {
+    const annotationMatch = /@interface\s+([A-Za-z_][A-Za-z0-9_]*)/.exec(text);
+    if (annotationMatch) {
+        return { kind: "annotation", name: annotationMatch[1] };
+    }
+    const interfaceMatch = /\binterface\s+([A-Za-z_][A-Za-z0-9_]*)/.exec(text);
+    if (interfaceMatch) {
+        return { kind: "interface", name: interfaceMatch[1] };
+    }
+    const enumMatch = /\benum\s+([A-Za-z_][A-Za-z0-9_]*)/.exec(text);
+    if (enumMatch) {
+        return { kind: "enum", name: enumMatch[1] };
+    }
+    const recordMatch = /\brecord\s+([A-Za-z_][A-Za-z0-9_]*)/.exec(text);
+    if (recordMatch) {
+        return { kind: "record", name: recordMatch[1] };
+    }
+    const classMatch = /\bclass\s+([A-Za-z_][A-Za-z0-9_]*)/.exec(text);
+    if (classMatch) {
+        return { kind: "class", name: classMatch[1] };
+    }
+    return { kind: "class", name: "<anonymous>" };
 }

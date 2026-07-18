@@ -97,7 +97,8 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "clean": "node -e \"try { require('fs').rmSync('out', {recursive:true,force:true}); require('fs').readdirSync('.').filter(f => f.endsWith('.vsix')).forEach(f => require('fs').unlinkSync(f)) } catch(e) {}\"",
-        "package": "npx @vscode/vsce package"
+        "package": "npx @vscode/vsce package",
+        "test:unit": "npm run compile && node out/test/run-tests.js"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

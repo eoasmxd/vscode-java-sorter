@@ -6,3 +6,7 @@ tsconfig.json
 **/*.ts
 !**/*.d.ts
 .github/**
+*.vsix
+test/**
+out/test/**
+

@@ -70,6 +70,18 @@ function compareMembers(a: MemberInfo, b: MemberInfo, config: SortConfiguration)
     }
 
     if (isMicroSortEnabled(a.type, config)) {
+        if (a.type !== b.type) {
+            const typeWeights: Record<string, number> = {
+                [MemberType.ENUM_CONSTANT]: 0,
+                [MemberType.FIELD]: 1,
+            };
+            const weightA = typeWeights[a.type] ?? 99;
+            const weightB = typeWeights[b.type] ?? 99;
+            if (weightA !== weightB) {
+                return weightA - weightB;
+            }
+        }
+
         switch (a.type) {
             case MemberType.CONSTRUCTOR:
                 return compareConstructors(a, b);
@@ -79,6 +91,8 @@ function compareMembers(a: MemberInfo, b: MemberInfo, config: SortConfiguration)
                 return compareFields(a, b, config);
             case MemberType.NESTED_TYPE:
                 return compareNestedTypes(a, b);
+            case MemberType.INITIALIZER:
+                return a.start - b.start;
             default:
                 return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
         }
@@ -196,6 +210,8 @@ function compareNestedTypes(a: MemberInfo, b: MemberInfo): number {
         class: 0,
         interface: 1,
         enum: 2,
+        record: 3,
+        annotation: 4,
     };
     const weightA = kindWeights[a.nestedKind || "class"] ?? 0;
     const weightB = kindWeights[b.nestedKind || "class"] ?? 0;

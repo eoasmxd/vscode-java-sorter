@@ -23,7 +23,7 @@ jobs:
       - name: Install, Compile & Package
         run: |
           npm install
-          npm run compile
+          npm run test:unit
           npx @vscode/vsce package
 
       - name: Publish to VS Code Marketplace
