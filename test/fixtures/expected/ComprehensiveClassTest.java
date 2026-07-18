@@ -4,7 +4,9 @@ public class ComprehensiveClassTest {
 
     // 1. 嵌套 Enum
     public enum MyEnum {
-        RED, GREEN, BLUE
+        RED,
+        GREEN,
+        BLUE
     }
 
     // 2. 嵌套 Record

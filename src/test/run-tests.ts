@@ -34,8 +34,9 @@ function runAllTests() {
     }
 
     // 用例 2: ComprehensiveInterfaceTest 可见性推导排序验证
+    let originalText2 = "";
     try {
-        const originalText = fs.readFileSync(path.join(fixturesDir, "original/ComprehensiveInterfaceTest.java"), "utf-8");
+        originalText2 = fs.readFileSync(path.join(fixturesDir, "original/ComprehensiveInterfaceTest.java"), "utf-8");
         const expectedText = fs.readFileSync(path.join(fixturesDir, "expected/ComprehensiveInterfaceTest.java"), "utf-8");
 
         const config: SortConfiguration = {
@@ -44,12 +45,23 @@ function runAllTests() {
             sortAllMembers: true
         };
 
-        const result = sortSourceCode(originalText, config);
+        const result = sortSourceCode(originalText2, config);
         assert.strictEqual(result.replace(/\r\n/g, "\n"), expectedText.replace(/\r\n/g, "\n"));
         console.log("✅ [PASSED]: ComprehensiveInterfaceTest");
         passed++;
     } catch (err) {
         console.error("❌ [FAILED]: ComprehensiveInterfaceTest");
+        try {
+            const { parseJavaClasses } = require("../parser");
+            const parsed = parseJavaClasses(originalText2);
+            if (parsed && parsed[0]) {
+                console.log("\n=== Interface Debug Members Info ===");
+                parsed[0].members.forEach((m: any) => {
+                    console.log(`- Name: "${m.name}", Type: ${m.type}, visibility: ${m.visibility}, paramCount: ${m.paramCount}`);
+                });
+                console.log("====================================\n");
+            }
+        } catch (e) {}
         console.error(err);
         failed++;
     }

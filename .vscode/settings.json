@@ -1,0 +1,9 @@
+{
+    "java.project.excludes": [
+        "**/node_modules",
+        "**/.metadata",
+        "**/archetype",
+        "**/bin",
+        "**/test/fixtures"
+    ]
+}

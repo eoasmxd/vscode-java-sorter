@@ -33,7 +33,9 @@ public class ComprehensiveClassTest {
 
     // 1. 嵌套 Enum
     public enum MyEnum {
-        RED, GREEN, BLUE
+        RED,
+        GREEN,
+        BLUE
     }
 
     // 11. 构造方法 B (双参数)

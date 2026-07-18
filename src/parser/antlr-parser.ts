@@ -49,7 +49,7 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
     ): MemberInfo[] {
         const members: MemberInfo[] = [];
         const bodyChildren = classBodyNode.children || classBodyNode;
-        const declarations = bodyChildren.classBodyDeclaration;
+        const declarations = bodyChildren.classBodyDeclaration || bodyChildren.interfaceMemberDeclaration;
         if (!declarations) {
             return members;
         }
@@ -82,8 +82,9 @@ class ClassBodyVisitor extends BaseJavaCstVisitorWithDefaults {
                 continue;
             }
 
-            if (children.methodDeclaration) {
-                for (const md of toArray(children.methodDeclaration)) {
+            const mdecl = children.methodDeclaration || children.interfaceMethodDeclaration;
+            if (mdecl) {
+                for (const md of toArray(mdecl)) {
                     const mdNode = md as CstNode;
                     if (isParsedAsMethodButActuallyRecord(this.source, startOffset, endOffset)) {
                         const recordName = extractMethodName(mdNode);
